@@ -15,14 +15,31 @@
   <body>
     <?php
       include "../../configs/DBConfig.php";
-print_r ($db);
       $query = "SELECT * FROM parks";
-        $pakrs = $db->query($query);
-      
+        $parks = $db->query($query);
     ?>
     <!-- navbar setion strnatcasecmp -->
 
-  
+  <div>
+
+<div class="card-deck">
+  <?php if ($parks->rowCount() > 0) : ?>
+      <?php foreach ($parks as $park) : ?>
+  <div class="card">
+    <img class="card-img-top" src=<?="../../assets/images/parks/".$park['english_name']."/".$park['image'].".jpg"?> alt=<?=$park['image']?>>
+    <div class="card-body">
+      <h5 class="card-title"><?=$park['name']?></h5>
+      <p class="card-text"><?=$park['address']?></p>
+    </div>
+    <?php endforeach ?>
+    <p>محتوایی موجود نیست</p>
+                <?php endif ?>
+
+</div>
+
+
+
+</div>
   </body>
 
   <script
