@@ -46,7 +46,7 @@
       <div class="carousel-inner h" style="height: 90vh;">
         <div class="carousel-item active" data-bs-interval="10000">
           <img
-            src="./assets/images//parks//chamran/chamran-1.jpeg"
+            src="./assets/images//parks//chamran/chamran-1.jpg"
             class="d-block w-100"
             alt="..."
           />
