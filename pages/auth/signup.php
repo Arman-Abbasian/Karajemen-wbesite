@@ -1,14 +1,23 @@
 <?php
-// فرض کنید به پایگاه داده متصل شده‌اید
+//  به پایگاه داده متصل می شوید
+include "../../configs/DBConfig.php";
 
+if (isset($_POST['signup'])) {
 // دریافت داده‌ها از فرم
 $first_name = $_POST['first_name'];
 $last_name = $_POST['last_name'];
-// ... بقیه فیلدها
+$birth_date = $_POST['birth_date'];
+$mobile_number = $_POST['mobile_number'];
+$password = $_POST['password'];
+$confirm_password = $_POST['confirm_password'];
+// متغیرهای ارور
 $first_name_error='';
 $last_name_error='';
 $birth_date_error='';
-// اعتبارسنجی داده‌ها
+$mobile_number_error='';
+$password_error='';
+$confirm_password_error='';
+// توابع اعتبارسنجی
 function validateName($name) {
     // تریم کردن ورودی
     $name = trim($name);
@@ -42,29 +51,88 @@ function validateBirthDate($birthDate) {
 
     return true;
 }
+function validate_mobile_number($mobile_number) {
+    // تریم کردن ورودی
+    $mobile_number = trim($mobile_number);
+
+    // بررسی طول شماره
+    if (strlen($mobile_number) !== 11) {
+        return false;
+    }
+
+    // بررسی شروع شماره با 09
+    if (substr($mobile_number, 0, 2) !== '09') {
+        return false;
+    }
+
+    // بررسی اینکه تمام کاراکترها عدد باشند
+    if (!is_numeric($mobile_number)) {
+        return false;
+    }
+
+    return true;
+}
+function validate_password($password) {
+    // تریم کردن ورودی
+    $password = trim($password);
+
+    // بررسی طول رمز عبور
+    if (strlen($password) < 8) {
+        return false;
+    }
+
+    // بررسی وجود حداقل یک حرف و یک عدد
+    if (!preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        return false;
+    }
+
+    return true;
+}
+function validate_confirm_password($password, $confirm_password) {
+    return $password === $confirm_password;
+}
 
 // اعتبارسنجی نام و نام خانوادگی
 if (!validateName($first_name)) {
     $first_name_error= "نام کوچک باید حداقل 3 و حداکثر 50 کاراکتر باشد.";
+    // اعتبارسنجی نام و نام خانوادگی
 } if (!validateName($last_name)) {
     $last_name_error= "نام خانوادگی باید حداقل 3 و حداکثر 50 کاراکتر باشد.";
 } 
+// اعتبارسنجی نام و نام خانوادگی
 if (!validateBirthDate($birth_date)) {
-    echo "تاریخ تولد وارد شده معتبر نیست.";
+    $birth_date_error= "تاریخ تولد وارد شده معتبر نیست.";
+}
+// اعتبارسنجی شماره موبایل
+if (!validate_mobile_number($mobile_number)) {
+    $mobile_number_error= "شماره موبایل وارد شده معتبر نیست.";
+}
+// اعتبارسنجی پسوورد 
+if (!validate_password($password)) {
+    $password_error= "شماره موبایل وارد شده معتبر نیست.";
+}
+if (!validate_confirm_password($password,$confirm_password)) {
+    $confirm_password_error= "تکرار پسوورد با پسوورد یکسان نیست.";
 }
 
-// اعتبارسنجی بیشتر (مثال: طول رمز عبور، فرمت ایمیل، ...)
-
-// هش کردن رمز عبور
+if(empty($first_name_error) && empty($last_name_error) && empty($birth_date_error) && empty($mobile_number_error) && 
+empty($password_error) && empty($confirm_password_error)){
+    // هش کردن رمز عبور
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
+//تولید کد
+$code=mt_rand(100000, 999999);
 // درج داده‌ها در پایگاه داده
-$sql = "INSERT INTO users (first_name, last_name, birth_date, mobile_number, email, password) VALUES (?, ?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssss", $first_name, $last_name, $birth_date, $mobile_number, $email, $password_hash);
-$stmt->execute();
+$userInsert=$db->prepare("INSERT INTO posts (first_name, last_name, birth_date, mobile_number, password, code) VALUES
+ (:first_name, :last_name, :birth_date, :mobile_number, :password)");
+$postInsert->execute(['first_name' => $first_name, 'last_name' => $last_name, 'birth_date' => $birth_date, 
+'mobile_number' => $mobile_number, 'password' => $password,'code'=>$code]);
+header("Location:login.php");
+exit();
+}
 
+}
 
+?>
 
 <!DOCTYPE html>
 <html>
@@ -86,16 +154,13 @@ $stmt->execute();
         <label for="mobile_number">شماره موبایل:</label>
         <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{11}" required>
 
-        <label for="email">ایمیل:</label>
-        <input type="email" id="email" name="email" required>
-
         <label for="password">رمز عبور:</label>
         <input type="password" id="password" name="password" required>
 
         <label for="confirm_password">تکرار رمز عبور:</label>
         <input type="password" id="confirm_password" name="confirm_password" required>
 
-        <button type="submit">ثبت‌نام</button>
+        <button type="submit" name='signup'>ثبت‌ نام</button>
     </form>
 </body>
 </html>
