@@ -1,6 +1,13 @@
 <?php
 //  به پایگاه داده متصل می شوید
 include "../../configs/DBConfig.php";
+// متغیرهای ارور
+$first_name_error='';
+$last_name_error='';
+$birth_date_error='';
+$mobile_number_error='';
+$password_error='';
+$confirm_password_error='';
 
 if (isset($_POST['signup'])) {
 // دریافت داده‌ها از فرم
@@ -10,13 +17,7 @@ $birth_date = $_POST['birth_date'];
 $mobile_number = $_POST['mobile_number'];
 $password = $_POST['password'];
 $confirm_password = $_POST['confirm_password'];
-// متغیرهای ارور
-$first_name_error='';
-$last_name_error='';
-$birth_date_error='';
-$mobile_number_error='';
-$password_error='';
-$confirm_password_error='';
+
 // توابع اعتبارسنجی
 function validateName($name) {
     // تریم کردن ورودی
@@ -109,7 +110,7 @@ if (!validate_mobile_number($mobile_number)) {
 }
 // اعتبارسنجی پسوورد 
 if (!validate_password($password)) {
-    $password_error= "شماره موبایل وارد شده معتبر نیست.";
+    $password_error= "رمز عبور وارد شده معتبر نیست.";
 }
 if (!validate_confirm_password($password,$confirm_password)) {
     $confirm_password_error= "تکرار پسوورد با پسوورد یکسان نیست.";
@@ -121,12 +122,20 @@ empty($password_error) && empty($confirm_password_error)){
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 //تولید کد
 $code=mt_rand(100000, 999999);
+//تعیین زمان انقضای کد
+// تنظیم Zone زمانی به تهران
+date_default_timezone_set('Asia/Tehran');
+// تاریخ انقضا را یک دقیقه بعد از زمان حال تنظیم می‌کنیم
+$expire_time = time() + 60;
+// تاریخ انقضا را به فرمت TIMESTAMP تبدیل می‌کنیم
+$expire_date = date('Y-m-d H:i:s', $expire_time);
 // درج داده‌ها در پایگاه داده
-$userInsert=$db->prepare("INSERT INTO posts (first_name, last_name, birth_date, mobile_number, password, code) VALUES
- (:first_name, :last_name, :birth_date, :mobile_number, :password)");
-$postInsert->execute(['first_name' => $first_name, 'last_name' => $last_name, 'birth_date' => $birth_date, 
-'mobile_number' => $mobile_number, 'password' => $password,'code'=>$code]);
-header("Location:login.php");
+$userInsert=$db->prepare("INSERT INTO users (first_name, last_name, birth_date, mobile_number, password, code, expire_date) VALUES
+ (:first_name, :last_name, :birth_date, :mobile_number, :password, :code, :expire_date)");
+$userInsert->execute(['first_name' => $first_name, 'last_name' => $last_name, 'birth_date' => $birth_date, 
+'mobile_number' => $mobile_number, 'password' => $password_hash,'code'=> $code,'expire_date'=>$expire_date]);
+print_r($userInsert);
+header("Location:login.php?msg=به جمع ما خوش آمدید");
 exit();
 }
 
@@ -135,30 +144,48 @@ exit();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html dir="rtl" lang="fa">
 <head>
     <title>فرم ثبت‌ نام</title>
 </head>
 <body>
     <h2>فرم ثبت‌ نام</h2>
-    <form action="register.php" method="post">
+    <form action="signup.php" method="post">
+        <div>
         <label for="first_name">نام:</label>
-        <input type="text" id="first_name" name="first_name" required>
+        <input type="text" id="first_name" name="first_name">
+        <p ><?= $first_name_error ?></p>
+        </div>
 
+        <div>
         <label for="last_name">نام خانوادگی:</label>
-        <input type="text" id="last_name" name="last_name" required>
+        <input type="text" id="last_name" name="last_name">
+        <p ><?= $last_name_error ?></p>
+</div>
 
+
+<div>
         <label for="birth_date">تاریخ تولد:</label>
-        <input type="date" id="birth_date" name="birth_date" required>
-
+        <input type="date" id="birth_date" name="birth_date">
+        <p ><?= $birth_date_error ?></p>
+</div>
+<div>
         <label for="mobile_number">شماره موبایل:</label>
-        <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{11}" required>
+        <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{11}">
+        <p ><?= $mobile_number_error ?></p>
+</div>
 
+<div>
         <label for="password">رمز عبور:</label>
-        <input type="password" id="password" name="password" required>
+        <input type="password" id="password" name="password">
+        <p ><?= $password_error ?></p>
+</div>
+<div>
 
         <label for="confirm_password">تکرار رمز عبور:</label>
-        <input type="password" id="confirm_password" name="confirm_password" required>
+        <input type="password" id="confirm_password" name="confirm_password">
+        <p ><?= $confirm_password_error ?></p>
+</div>
 
         <button type="submit" name='signup'>ثبت‌ نام</button>
     </form>
