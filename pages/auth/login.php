@@ -38,7 +38,7 @@ function validate_code($code) {
     // تریم کردن ورودی
     $code = trim($code);
     // بررسی طول رمز عبور
-    if (strlen($code) != 8) {
+    if (strlen($code) != 6) {
         return false;
     }
 
@@ -56,17 +56,20 @@ if (!validate_mobile_number($mobile_number)) {
     $mobile_number_error= "شماره موبایل وارد شده معتبر نیست.";
 }
 // اعتبارسنجی کد 
-if (!validate_password($password)) {
+if (!validate_code($code)) {
     $code_error= "کد وارد شده معتبر نیست.";
 }
 
 if(empty($mobile_number_error) && empty($code_error)){
     $user = $db->prepare("SELECT * FROM users WHERE mobile_number=:mobile_number");
-        $user->execute([' mobile_number' => $mobile_number]);
+    echo $mobile_number;
+        $user->execute(['mobile_number' => $mobile_number]);
+    var_dump($user);
     if($user->rowCount()==1){
-        die("found")
+        print_r($user['code']);
     }else{
-        die("not found")
+        echo "yes";
+        header("Location:login.php?msg=کاربری با این شماره موبایل موجود نیست؛ لطفا ابتدا ثبت نام کنید");
     }
 // تنظیم Zone زمانی به تهران
 date_default_timezone_set('Asia/Tehran');
@@ -83,29 +86,12 @@ $expire_date = date('Y-m-d H:i:s', $expire_time);
 <!DOCTYPE html>
 <html dir="rtl" lang="fa">
 <head>
-    <title>فرم ثبت‌ نام</title>
+    <title>فرم ورود</title>
 </head>
 <body>
-    <h2>فرم ثبت‌ نام</h2>
-    <form action="signup.php" method="post">
-        <div>
-        <label for="first_name">نام:</label>
-        <input type="text" id="first_name" name="first_name">
-        <p ><?= $first_name_error ?></p>
-        </div>
-
-        <div>
-        <label for="last_name">نام خانوادگی:</label>
-        <input type="text" id="last_name" name="last_name">
-        <p ><?= $last_name_error ?></p>
-</div>
-
-
-<div>
-        <label for="birth_date">تاریخ تولد:</label>
-        <input type="date" id="birth_date" name="birth_date">
-        <p ><?= $birth_date_error ?></p>
-</div>
+    <h2>فرم  ورود</h2>
+    <form action="login.php" method="post">
+       
 <div>
         <label for="mobile_number">شماره موبایل:</label>
         <input type="tel" id="mobile_number" name="mobile_number" pattern="[0-9]{11}">
@@ -113,18 +99,12 @@ $expire_date = date('Y-m-d H:i:s', $expire_time);
 </div>
 
 <div>
-        <label for="password">رمز عبور:</label>
-        <input type="password" id="password" name="password">
-        <p ><?= $password_error ?></p>
-</div>
-<div>
-
-        <label for="confirm_password">تکرار رمز عبور:</label>
-        <input type="password" id="confirm_password" name="confirm_password">
-        <p ><?= $confirm_password_error ?></p>
+        <label for="code">رمز عبور:</label>
+        <input type="code" id="code" name="code">
+        <p ><?= $code_error ?></p>
 </div>
 
-        <button type="submit" name='signup'>ثبت‌ نام</button>
+        <button type="submit" name='login'>ورود</button>
     </form>
 </body>
 </html>
